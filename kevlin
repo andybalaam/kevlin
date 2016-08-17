@@ -5,11 +5,19 @@ import re
 #def is_symbol( t ):
 #    return re.match( "[a-z_A-Z][0-9a-z_A-Z]*", t ) is not None
 
+kw_if = ( "if", "keyword" )
+kw_for = ( "for", "keyword" )
+kw_in = ( "in", "keyword" )
+
 def format( tokens ):
     ret = ""
     first = True
     indent = 0
-    for t in tokens:
+    for tok in tokens:
+        if len(tok[0]) > 1:
+            t = tok[0]
+        else:
+            t = tok
         if t == "}":
             indent -= 1
             ret += "    " * indent + t + "\n"
@@ -21,11 +29,21 @@ def format( tokens ):
         elif first:
             first = False
             ret += "    " * indent + t
+        elif t == "(" and not after_kw:
+            ret += t
+        elif t == ",":
+            ret += t
         elif t == ";":
             ret += t + "\n"
             first = True
         else:
             ret += " " + t
+
+        try:
+            after_kw = ( tok[1] == "keyword" )
+        except IndexError:
+            after_kw = False
+
     return ret
 
 
@@ -53,7 +71,7 @@ x += 1;
 
 
 assert_equal(
-    format(["if", "(", "x", "==", "0", ")", "{", "x", "=", "1", ";", "}"]),
+    format([kw_if, "(", "x", "==", "0", ")", "{", "x", "=", "1", ";", "}"]),
     """
 if ( x == 0 )
 {
@@ -66,7 +84,7 @@ if ( x == 0 )
 assert_equal(
     format(
         [
-            "if", "(", "x", "==", "0", ")",
+            kw_if, "(", "x", "==", "0", ")",
             "{",
                 "x", "=", "1", ";",
             "}",
@@ -86,9 +104,9 @@ x += 1;
 assert_equal(
     format(
         [
-            "if", "(", "x", "==", "0", ")",
+            kw_if, "(", "x", "==", "0", ")",
             "{",
-                "for", "(", "y", "in", "zs", ")",
+                kw_for, "(", "y", kw_in, "zs", ")",
                 "{",
                     "x", "=", "1", ";",
                 "}",
@@ -103,6 +121,30 @@ if ( x == 0 )
         x = 1;
     }
 }
+"""
+)
+
+
+assert_equal(
+    format(
+        [
+            "abc", "(", "11111111", ",", "22222222", ")", ";"
+        ]
+    ),
+    """
+abc( 11111111, 22222222 );
+"""
+)
+
+assert_equal(
+    format(
+        [
+            "a" * 75, "(", "11111111", ",", "22222222", ")", ";"
+        ]
+    ),
+    """
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa(
+    11111111, 22222222 );
 """
 )
 
