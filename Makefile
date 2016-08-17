@@ -1,11 +1,19 @@
 
+
+SOURCES := $(shell find src/main/java -name "*.java")
+MAIN_CLASS := Kevlin
+
 all: kevlin_j
 
-kevlin_j: out/kevlin_j.jar
+clean:
+	rm -rf out
 
-out/kevlin_j.jar: out/Kevlin.class
-	jar -cfe $@ Kevlin -C out Kevlin.class
+kevlin_j: out/jar/kevlin_j.jar
 
-out/Kevlin.class: src/main/java/Kevlin.java
-	@mkdir -p out
-	javac -d out $<
+out/jar/kevlin_j.jar: ${SOURCES}
+	@mkdir -p out/compile
+	@mkdir -p out/jar
+	javac -d out/compile $<
+	cd out/compile && jar -cfe ../../$@ Kevlin *.class
+
+
