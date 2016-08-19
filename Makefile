@@ -14,6 +14,6 @@ out/jar/kevlin_j.jar: ${SOURCES}
 	@mkdir -p out/compile
 	@mkdir -p out/jar
 	javac -d out/compile $<
-	cd out/compile && jar -cfe ../../$@ Kevlin *.class
+	cd out/compile && jar -cfe ../../$@ Kevlin **.class
 
 
