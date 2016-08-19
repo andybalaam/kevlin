@@ -3,10 +3,13 @@
 SOURCES := $(shell find src/main/java -name "*.java")
 MAIN_CLASS := Kevlin
 
-all: kevlin_j
+all: test_j
 
 clean:
 	rm -rf out
+
+test_j: kevlin_j
+	java -jar out/jar/kevlin_j.jar
 
 kevlin_j: out/jar/kevlin_j.jar
 
