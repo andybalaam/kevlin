@@ -33,6 +33,7 @@ public class Kevlin
     {
         System.out.println("Running tests ...");
         Tests.Short_variable_declaration_on_one_line();
+        Tests.Short_function_call_on_one_line();
         Tests.Class_block_wraps_even_if_fits();
         System.out.println("All tests passed.");
     }
@@ -46,6 +47,21 @@ public class Kevlin
                 "int x = 3;"
             );
         }
+
+        private static void Short_function_call_on_one_line()
+        {
+            a(
+                list(
+                    list(
+                        p("my_fn"),
+                        list("(", ")", ",", p("3"), p("\"a\"")),
+                        n(";")
+                    )
+                ),
+                "my_fn(3, \"a\");"
+            );
+        }
+
 
         private static void Class_block_wraps_even_if_fits()
         {
@@ -77,18 +93,37 @@ public class Kevlin
             }
             if (node.start != null)
             {
-                str.append("\n");
+                if (node.forceLineBreaks)
+                {
+                    str.append("\n");
+                }
                 str.append(node.start);
-                str.append("\n");
+                if(node.forceLineBreaks)
+                {
+                    str.append("\n");
+                }
+                pad = false;
             }
+            boolean firstChild = true;
             for (AstNode child : node.children)
             {
+                if (firstChild)
+                {
+                    firstChild = false;
+                }
+                else if (node.separator != null)
+                {
+                    str.append(node.separator);
+                }
                 add(child);
             }
             if (node.end != null)
             {
                 str.append(node.end);
-                str.append("\n");
+                if(node.forceLineBreaks)
+                {
+                    str.append("\n");
+                }
             }
         }
 
@@ -111,6 +146,8 @@ public class Kevlin
         public final boolean pad;
         public final String start;
         public final String end;
+        public final String separator;
+        public final boolean forceLineBreaks;
         public final AstNode[] children;
 
         public AstNode(String contents, boolean pad)
@@ -119,6 +156,8 @@ public class Kevlin
             this.pad = pad;
             this.start = null;
             this.end = null;
+            this.separator = null;
+            this.forceLineBreaks = false;
             this.children = new AstNode[0];
         }
 
@@ -128,15 +167,41 @@ public class Kevlin
             this.pad = false;
             this.start = null;
             this.end = null;
+            this.separator = null;
+            this.forceLineBreaks = false;
             this.children = new AstNode[0];
         }
 
-        public AstNode(String start, String end, AstNode... children)
+        public AstNode(
+            String start,
+            String end,
+            boolean forceLineBreaks,
+            AstNode... children
+        )
         {
             this.contents = null;
             this.pad = false;
             this.start = start;
             this.end = end;
+            this.separator = null;
+            this.forceLineBreaks = forceLineBreaks;
+            this.children = children;
+        }
+
+        public AstNode(
+            String start,
+            String end,
+            String separator,
+            boolean forceLineBreaks,
+            AstNode... children
+        )
+        {
+            this.contents = null;
+            this.pad = false;
+            this.start = start;
+            this.end = end;
+            this.separator = separator;
+            this.forceLineBreaks = forceLineBreaks;
             this.children = children;
         }
 
@@ -146,6 +211,8 @@ public class Kevlin
             this.pad = false;
             this.start = null;
             this.end = null;
+            this.separator = null;
+            this.forceLineBreaks = false;
             this.children = children;
         }
     }
@@ -160,6 +227,12 @@ public class Kevlin
         return new AstNode(contents);
     }
 
+    private static AstNode list(
+        String start, String end, String separator, AstNode... items)
+    {
+        return new AstNode(start, end, separator, false, items);
+    }
+
     private static AstNode list(AstNode... items)
     {
         return new AstNode(items);
@@ -167,6 +240,6 @@ public class Kevlin
 
     private static AstNode block(String start, String end, AstNode... items)
     {
-        return new AstNode(start, end, items);
+        return new AstNode(start, end, true, items);
     }
 }
